@@ -72,6 +72,23 @@ System.register(["./Vec2"], function (exports_1, context_1) {
                     enumerable: false,
                     configurable: true
                 });
+                Object.defineProperty(Rect.prototype, "startMirror", {
+                    get: function () {
+                        return new Vec2_1.default(this.x, this.endY);
+                    },
+                    enumerable: false,
+                    configurable: true
+                });
+                Object.defineProperty(Rect.prototype, "endMirror", {
+                    get: function () {
+                        return new Vec2_1.default(this.endX, this.y);
+                    },
+                    enumerable: false,
+                    configurable: true
+                });
+                Rect.prototype.offset = function (vec) {
+                    return new Rect(this.x + vec.x, this.y + vec.y, this.w, this.h);
+                };
                 Rect.prototype.within = function (rect) {
                     return this.x >= rect.x && this.endX <= rect.endX && this.y >= rect.y && this.y <= rect.endY;
                 };

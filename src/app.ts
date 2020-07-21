@@ -1,4 +1,4 @@
-import dataList from './data'
+import dataList from './data3'
 import Flow from './Flow'
 
 const canvas = document.getElementById('gantt') as HTMLCanvasElement
@@ -8,25 +8,24 @@ if (!canvas) {
 
 const flow = new Flow(canvas, dataList, {
     nodeBackground(data) {
-        if (data.id === '1') {
+        // if (data.id === '1') {
             return 'red'
-        } else {
-            return 'green'
-        }
+        // } else {
+        //     return 'green'
+        // }
     },
     nodeColor(data) {
         return 'white'
     },
     arrowColor(start, end) {
-        if (start.id === '1') {
-            return 'red'
-        } else {
+        // if (start.id === '1') {
+        //     return 'red'
+        // } else {
             return 'green'
-        }
+        // }
     },
     onTapNode(data) {
         alert(data.id)
     },
-    radius: 30,
 })
 flow.render()

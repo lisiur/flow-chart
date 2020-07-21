@@ -16,7 +16,7 @@ System.register(["./GraphArrow"], function (exports_1, context_1) {
                 }
                 FlowNode.prototype.render = function (config) {
                     this.config = config !== null && config !== void 0 ? config : this.config;
-                    var _a = this.config, start = _a.start, end = _a.end, color = _a.color, _b = _a.endBorder, endBorder = _b === void 0 ? 5 : _b, _c = _a.startRadius, startRadius = _c === void 0 ? 5 : _c, _d = _a.endAngle, endAngle = _d === void 0 ? Math.PI / 2 : _d, _e = _a.endHeight, endHeight = _e === void 0 ? 10 : _e, _f = _a.wrapLength, wrapLength = _f === void 0 ? 50 : _f;
+                    var _a = this.config, start = _a.start, end = _a.end, color = _a.color, _b = _a.endBorder, endBorder = _b === void 0 ? 5 : _b, _c = _a.startRadius, startRadius = _c === void 0 ? 5 : _c, _d = _a.endAngle, endAngle = _d === void 0 ? Math.PI / 2 : _d, _e = _a.endHeight, endHeight = _e === void 0 ? 10 : _e, _f = _a.wrapLength, wrapLength = _f === void 0 ? 20 : _f;
                     this.graphArrow.render({
                         color: color,
                         start: start,

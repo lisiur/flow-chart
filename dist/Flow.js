@@ -1,6 +1,6 @@
-System.register(["./Vec2", "./DataNode", "./Interaction", "./Rect", "./Layout", "./FlowNode", "./FlowArrow", "mathjs"], function (exports_1, context_1) {
+System.register(["./Vec2", "./DataNode", "./Interaction", "./Rect", "./FlowNode", "./FlowArrow", "mathjs"], function (exports_1, context_1) {
     "use strict";
-    var Vec2_1, DataNode_1, Interaction_1, Rect_1, Layout_1, FlowNode_1, FlowArrow_1, mathjs_1, Flow;
+    var Vec2_1, DataNode_1, Interaction_1, Rect_1, FlowNode_1, FlowArrow_1, mathjs_1, Flow;
     var __moduleName = context_1 && context_1.id;
     return {
         setters: [
@@ -16,9 +16,6 @@ System.register(["./Vec2", "./DataNode", "./Interaction", "./Rect", "./Layout", 
             function (Rect_1_1) {
                 Rect_1 = Rect_1_1;
             },
-            function (Layout_1_1) {
-                Layout_1 = Layout_1_1;
-            },
             function (FlowNode_1_1) {
                 FlowNode_1 = FlowNode_1_1;
             },
@@ -33,7 +30,6 @@ System.register(["./Vec2", "./DataNode", "./Interaction", "./Rect", "./Layout", 
             Flow = /** @class */ (function () {
                 function Flow(canvas, dataList, config) {
                     var _this = this;
-                    var _a, _b;
                     this.canvas = canvas;
                     this.config = config;
                     var context = canvas.getContext('2d');
@@ -61,32 +57,44 @@ System.register(["./Vec2", "./DataNode", "./Interaction", "./Rect", "./Layout", 
                             }
                         });
                     });
-                    var _c = this.canvas, width = _c.width, height = _c.height;
+                    var _a = this.canvas, width = _a.width, height = _a.height;
                     this.rect = new Rect_1.default(0, 0, width, height);
-                    var _d = this.buildDataTree(dataList), dataTree = _d.root, list = _d.list;
-                    var layout = new Layout_1.default(dataTree, {
-                        gap: this.config.gap,
-                        offsetX: (_a = this.config.offsetX) !== null && _a !== void 0 ? _a : width / 2,
-                        offsetY: (_b = this.config.offsetY) !== null && _b !== void 0 ? _b : 0,
+                    var _b = this.buildDataTree(dataList), dataTree = _b.root, list = _b.list;
+                    var rootPosition = Array.from(dataTree.children)[0].position;
+                    var realPosition = this.getPosition(rootPosition.x, rootPosition.y, true);
+                    this.offset = new Vec2_1.default(width / 2 - realPosition.x, 0);
+                    var maxLabelLength = 0;
+                    dataList.forEach(function (dataItem) {
+                        maxLabelLength = Math.max(maxLabelLength, dataItem.label.length);
                     });
+                    var labelWidth = this.config.width || ((this.config.fontSize || 12) * maxLabelLength + 4);
+                    var labelHeight = (this.config.fontSize || 12) + 16;
+                    // const layout = new Layout(dataTree, {
+                    //     gap: this.config.gap || new Vec2(labelWidth, labelHeight * 3),
+                    //     offsetX: this.config.offsetX ?? width / 2,
+                    //     offsetY: this.config.offsetY ?? 0,
+                    // })
                     dataList.forEach(function (dataItem) {
                         var node = list.get(dataItem.id);
-                        var center = layout.getPosition(dataItem.id);
+                        // const center = layout.getPosition(dataItem.id) as Vec2
+                        var center = _this.getPosition(dataItem.x, dataItem.y);
                         _this.flowNodes.push(new FlowNode_1.default(canvas, {
                             background: _this.config.nodeBackground(dataItem.originData),
                             color: _this.config.nodeColor(dataItem.originData),
-                            center: center,
+                            rect: new Rect_1.default(center.x - labelWidth / 2, center.y - labelHeight / 2, labelWidth, labelHeight),
                             text: dataItem.label,
                             fontSize: _this.config.fontSize,
-                            radius: _this.config.radius,
                         }, dataItem));
                         var parents = Array.from(node.parents);
                         parents.forEach(function (parent) {
-                            var position = layout.getPosition(parent.id);
+                            // const position = layout.getPosition(parent.id)
+                            // position.x = parent.position?.y * 2
+                            // position.y = parent.position?.x
+                            var position = _this.getPosition(parent.position.x, parent.position.y);
                             _this.flowArrows.push(new FlowArrow_1.default(canvas, {
                                 color: _this.config.arrowColor(parent.originData, dataItem.originData),
-                                start: position.add(new Vec2_1.default(0, _this.config.radius)),
-                                end: center.add(new Vec2_1.default(0, -_this.config.radius)),
+                                start: position.add(new Vec2_1.default(0, labelHeight / 2)),
+                                end: center.add(new Vec2_1.default(0, -labelHeight / 2)),
                                 endAngle: _this.config.endAngle,
                                 endBorder: _this.config.endBorder,
                                 endHeight: _this.config.endHeight,
@@ -96,6 +104,15 @@ System.register(["./Vec2", "./DataNode", "./Interaction", "./Rect", "./Layout", 
                         });
                     });
                 }
+                Flow.prototype.getPosition = function (x, y, noOffset) {
+                    if (noOffset === void 0) { noOffset = false; }
+                    if (noOffset) {
+                        return new Vec2_1.default(x * 2, y);
+                    }
+                    else {
+                        return new Vec2_1.default(x * 2, y).add(this.offset);
+                    }
+                };
                 Flow.prototype.render = function () {
                     this.context.save();
                     this.context.setTransform(1, 0, 0, 1, 0, 0);
@@ -142,7 +159,7 @@ System.register(["./Vec2", "./DataNode", "./Interaction", "./Rect", "./Layout", 
                     var isChildren = new Map();
                     var dataLinkList = [];
                     dataList.forEach(function (dataItem) {
-                        var dataNode = new DataNode_1.default(dataItem.id, dataItem.label, dataItem.originData);
+                        var dataNode = new DataNode_1.default(dataItem.id, dataItem.label, dataItem.originData, new Vec2_1.default(dataItem.x, dataItem.y));
                         map.set(dataItem.id, dataNode);
                         dataItem.children.forEach(function (id) {
                             isChildren.set(id, true);
@@ -159,7 +176,7 @@ System.register(["./Vec2", "./DataNode", "./Interaction", "./Rect", "./Layout", 
                             node.parents.add(dataNode);
                         });
                     });
-                    var root = new DataNode_1.default('', '', null);
+                    var root = new DataNode_1.default('', '', null, new Vec2_1.default(0, 0));
                     dataLinkList.forEach(function (dataNode) {
                         root.children.add(dataNode);
                     });

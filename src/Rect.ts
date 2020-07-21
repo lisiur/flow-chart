@@ -1,7 +1,7 @@
 import Vec2 from './Vec2'
 
 export default class Rect {
-    constructor(public x: number, public y: number, public w: number, public h: number) {}
+    constructor(public x: number, public y: number, public w: number, public h: number) { }
 
     get startX() {
         return this.x
@@ -33,6 +33,18 @@ export default class Rect {
 
     get end() {
         return new Vec2(this.endX, this.endY)
+    }
+
+    get startMirror() {
+        return new Vec2(this.x, this.endY)
+    }
+
+    get endMirror() {
+        return new Vec2(this.endX, this.y)
+    }
+
+    offset(vec: Vec2) {
+        return new Rect(this.x + vec.x, this.y + vec.y, this.w, this.h)
     }
 
     within(rect: Rect) {

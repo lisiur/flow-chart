@@ -104,7 +104,7 @@ System.register(["./Canvas2D", "./Vec2"], function (exports_1, context_1) {
                     return new Vec2_1.default(textWidth, textHeight);
                 };
                 Text.prototype.render = function (config, style) {
-                    _super.prototype.render.call(this, config, style);
+                    return _super.prototype.render.call(this, config, style);
                 };
                 return Text;
             }(Canvas2D_1.default));

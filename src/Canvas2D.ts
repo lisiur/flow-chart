@@ -18,8 +18,9 @@ export default abstract class Canvas2D {
     render(config?: any, style?: CanvasContextStyle) {
         this.context.save()
         this.setStyle(style)
-        this.draw(config)
+        const ret = this.draw(config)
         this.context.restore()
+        return ret
     }
 
     protected abstract draw(config: any): any;

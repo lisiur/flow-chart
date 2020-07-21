@@ -1,5 +1,6 @@
 import Vec2 from "./Vec2"
 import GraphNode from './GraphNode'
+import Rect from "./Rect"
 
 export default class FlowNode<T> {
     private graphNode: GraphNode
@@ -8,11 +9,10 @@ export default class FlowNode<T> {
     }
 
     render() {
-        const {text, radius = 30, center: start, color, background, fontSize = 12} = this.config
+        const { text, rect, color, background, fontSize = 12 } = this.config
         this.graphNode.render({
             background,
-            center: start,
-            radius,
+            rect,
             color,
             text,
             fontSize,
@@ -20,14 +20,13 @@ export default class FlowNode<T> {
     }
 
     contains(vec: Vec2) {
-        return Math.pow(vec.x - this.config.center.x, 2) + Math.pow(vec.y - this.config.center.y, 2) <= Math.pow(this.config.radius, 2)
+        return vec.x >= this.config.rect.x && vec.x <= this.config.rect.endX && vec.y >= this.config.rect.y && vec.y <= this.config.rect.endY
     }
 }
 
 export interface Config {
     text: string
-    center: Vec2
-    radius: number
+    rect: Rect
     color: string
     background: string
     fontSize?: number

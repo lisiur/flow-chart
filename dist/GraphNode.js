@@ -1,6 +1,6 @@
-System.register(["./Rect", "./Arc", "./Text", "./Vec2"], function (exports_1, context_1) {
+System.register(["./Rect", "./Arc", "./Text", "./Vec2", "./Rectangle"], function (exports_1, context_1) {
     "use strict";
-    var Rect_1, Arc_1, Text_1, Vec2_1, GraphNode;
+    var Rect_1, Arc_1, Text_1, Vec2_1, Rectangle_1, GraphNode;
     var __moduleName = context_1 && context_1.id;
     return {
         setters: [
@@ -15,26 +15,69 @@ System.register(["./Rect", "./Arc", "./Text", "./Vec2"], function (exports_1, co
             },
             function (Vec2_1_1) {
                 Vec2_1 = Vec2_1_1;
+            },
+            function (Rectangle_1_1) {
+                Rectangle_1 = Rectangle_1_1;
             }
         ],
         execute: function () {
             GraphNode = /** @class */ (function () {
                 function GraphNode(canvas) {
                     this.circle = new Arc_1.default(canvas);
+                    this.rectangles = [new Rectangle_1.default(canvas), new Rectangle_1.default(canvas), new Rectangle_1.default(canvas)];
                     this.text = new Text_1.default(canvas);
+                    this.borders = [new Arc_1.default(canvas), new Arc_1.default(canvas), new Arc_1.default(canvas), new Arc_1.default(canvas)];
                 }
                 GraphNode.prototype.render = function (config) {
-                    var center = config.center, text = config.text, radius = config.radius, background = config.background, fontSize = config.fontSize, color = config.color;
-                    this.circle.render({
-                        angle: new Vec2_1.default(0, Math.PI * 2),
-                        center: center,
-                        radius: radius,
+                    var rect = config.rect, text = config.text, background = config.background, fontSize = config.fontSize, color = config.color, _a = config.borderRadius, borderRadius = _a === void 0 ? 6 : _a;
+                    var topRect = new Rect_1.default(rect.startX + borderRadius, rect.startY, rect.width - borderRadius * 2, borderRadius);
+                    var middleRect = new Rect_1.default(rect.startX, rect.startY + borderRadius, rect.width, rect.height - borderRadius * 2);
+                    var bottomRect = new Rect_1.default(rect.startX + borderRadius, rect.endY - borderRadius, rect.width - borderRadius * 2, borderRadius);
+                    this.rectangles[0].render({
+                        rect: topRect,
                     }, {
                         fillStyle: background
                     });
-                    var leftTop = center.add(new Vec2_1.default(-radius, -radius));
+                    this.rectangles[1].render({
+                        rect: middleRect,
+                    }, {
+                        fillStyle: background
+                    });
+                    this.rectangles[2].render({
+                        rect: bottomRect,
+                    }, {
+                        fillStyle: background
+                    });
+                    this.borders[0].render({
+                        center: rect.start.add(new Vec2_1.default(borderRadius, borderRadius)),
+                        angle: new Vec2_1.default(0, Math.PI * 2),
+                        radius: borderRadius,
+                    }, {
+                        fillStyle: background
+                    });
+                    this.borders[1].render({
+                        center: rect.endMirror.add(new Vec2_1.default(-borderRadius, borderRadius)),
+                        angle: new Vec2_1.default(0, Math.PI * 2),
+                        radius: borderRadius,
+                    }, {
+                        fillStyle: background
+                    });
+                    this.borders[2].render({
+                        center: rect.end.add(new Vec2_1.default(-borderRadius, -borderRadius)),
+                        angle: new Vec2_1.default(0, Math.PI * 2),
+                        radius: borderRadius,
+                    }, {
+                        fillStyle: background
+                    });
+                    this.borders[3].render({
+                        center: rect.startMirror.add(new Vec2_1.default(borderRadius, -borderRadius)),
+                        angle: new Vec2_1.default(0, Math.PI * 2),
+                        radius: borderRadius,
+                    }, {
+                        fillStyle: background
+                    });
                     this.text.render({
-                        bound: new Rect_1.default(leftTop.x, leftTop.y, radius * 2, radius * 2),
+                        bound: rect.offset(new Vec2_1.default(0, 2)),
                         text: text,
                         textBaseOffset: 'center',
                     }, {

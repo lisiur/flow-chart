@@ -9,7 +9,7 @@ export default class FlowNode {
 
     render(config?: Config) {
         this.config = config ?? this.config
-        const { start, end, color, endBorder = 5, startRadius = 5, endAngle = Math.PI / 2, endHeight = 10, wrapLength = 50 } = this.config
+        const { start, end, color, endBorder = 5, startRadius = 5, endAngle = Math.PI / 2, endHeight = 10, wrapLength = 20 } = this.config
         this.graphArrow.render({
             color,
             start,

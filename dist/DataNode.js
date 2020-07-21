@@ -6,10 +6,11 @@ System.register([], function (exports_1, context_1) {
         setters: [],
         execute: function () {
             DataNode = /** @class */ (function () {
-                function DataNode(id, label, originData) {
+                function DataNode(id, label, originData, position) {
                     this.id = id;
                     this.label = label;
                     this.originData = originData;
+                    this.position = position;
                     this.children = new Set();
                     this.parents = new Set();
                 }

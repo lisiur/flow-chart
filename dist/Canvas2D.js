@@ -31,8 +31,9 @@ System.register([], function (exports_1, context_1) {
                 Canvas2D.prototype.render = function (config, style) {
                     this.context.save();
                     this.setStyle(style);
-                    this.draw(config);
+                    var ret = this.draw(config);
                     this.context.restore();
+                    return ret;
                 };
                 Canvas2D.prototype.getStyle = function (style) {
                     return __assign({ fillStyle: '#000', strokeStyle: '#000', lineWidth: 1, textAlign: 'start', direction: 'inherit', textBaseline: 'alphabetic', font: '13px Microsoft YaHei', lineJoin: 'bevel' }, style);

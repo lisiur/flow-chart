@@ -88,7 +88,7 @@ export default class Text extends Canvas2D {
     }
 
     public render(config: Config, style?: CanvasContextStyle) {
-        super.render(config, style)
+        return super.render(config, style)
     }
 }
 

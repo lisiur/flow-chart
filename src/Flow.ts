@@ -2,7 +2,7 @@ import Vec2 from './Vec2'
 import DataNode from './DataNode'
 import Interaction from './Interaction'
 import Rect from './Rect'
-import Layout from './Layout'
+// import Layout from './Layout'
 import FlowNode from './FlowNode'
 import FlowArrow from './FlowArrow'
 // import * as math from 'mathjs'
@@ -14,6 +14,7 @@ export default class Flow {
     private interaction: Interaction
     private rect!: Rect
     private transformMatrix: math.Matrix
+    private offset: Vec2
     constructor(private canvas: HTMLCanvasElement, dataList: Data[], public config: FlowConfig) {
         const context = canvas.getContext('2d')
         if (!context) throw new Error('can not get canvas context')
@@ -43,30 +44,47 @@ export default class Flow {
         const { width, height } = this.canvas
         this.rect = new Rect(0, 0, width, height)
 
-        const { root: dataTree, list } = this.buildDataTree(dataList)
-        const layout = new Layout(dataTree, {
-            gap: this.config.gap,
-            offsetX: this.config.offsetX ?? width / 2,
-            offsetY: this.config.offsetY ?? 0,
+        const { root: dataTree, list } = this.buildDataTree(dataList);
+        const rootPosition = Array.from(dataTree.children)[0].position
+        const realPosition = this.getPosition(rootPosition.x, rootPosition.y, true)
+        this.offset = new Vec2(width/ 2 - realPosition.x, 0)
+
+        let maxLabelLength = 0
+        dataList.forEach(dataItem => {
+            maxLabelLength = Math.max(maxLabelLength, dataItem.label.length)
         })
+        const labelWidth = this.config.width || ((this.config.fontSize || 12) * maxLabelLength + 4)
+        const labelHeight = (this.config.fontSize || 12) + 16
+
+        // const layout = new Layout(dataTree, {
+        //     gap: this.config.gap || new Vec2(labelWidth, labelHeight * 3),
+        //     offsetX: this.config.offsetX ?? width / 2,
+        //     offsetY: this.config.offsetY ?? 0,
+        // })
         dataList.forEach(dataItem => {
             const node = list.get(dataItem.id) as DataNode
-            const center = layout.getPosition(dataItem.id) as Vec2
+
+            // const center = layout.getPosition(dataItem.id) as Vec2
+            const center = this.getPosition(dataItem.x, dataItem.y)
+
             this.flowNodes.push(new FlowNode<Data>(canvas, {
                 background: this.config.nodeBackground(dataItem.originData),
                 color: this.config.nodeColor(dataItem.originData),
-                center,
+                rect: new Rect(center.x - labelWidth / 2, center.y - labelHeight / 2, labelWidth, labelHeight),
                 text: dataItem.label,
                 fontSize: this.config.fontSize,
-                radius: this.config.radius,
             }, dataItem))
             const parents = Array.from(node.parents)
             parents.forEach(parent => {
-                const position = layout.getPosition(parent.id)
+                // const position = layout.getPosition(parent.id)
+                // position.x = parent.position?.y * 2
+                // position.y = parent.position?.x
+                const position = this.getPosition(parent.position.x, parent.position.y)
+
                 this.flowArrows.push(new FlowArrow(canvas, {
                     color: this.config.arrowColor(parent.originData, dataItem.originData),
-                    start: position.add(new Vec2(0, this.config.radius)),
-                    end: center.add(new Vec2(0, -this.config.radius)),
+                    start: position.add(new Vec2(0, labelHeight / 2)),
+                    end: center.add(new Vec2(0, -labelHeight / 2)),
                     endAngle: this.config.endAngle,
                     endBorder: this.config.endBorder,
                     endHeight: this.config.endHeight,
@@ -75,6 +93,14 @@ export default class Flow {
                 }))
             })
         })
+    }
+
+    private getPosition(x: number, y: number, noOffset = false) {
+        if (noOffset) {
+            return new Vec2(x * 2, y)
+        } else {
+            return new Vec2(x * 2, y).add(this.offset)
+        }
     }
 
     render() {
@@ -133,7 +159,7 @@ export default class Flow {
         const isChildren: Map<string, Boolean> = new Map()
         const dataLinkList: DataNode[] = []
         dataList.forEach(dataItem => {
-            const dataNode = new DataNode(dataItem.id, dataItem.label, dataItem.originData)
+            const dataNode = new DataNode(dataItem.id, dataItem.label, dataItem.originData, new Vec2(dataItem.x, dataItem.y))
             map.set(dataItem.id, dataNode)
             dataItem.children.forEach(id => {
                 isChildren.set(id, true)
@@ -150,7 +176,7 @@ export default class Flow {
                 node.parents.add(dataNode)
             })
         })
-        const root = new DataNode('', '', null)
+        const root = new DataNode('', '', null, new Vec2(0, 0))
         dataLinkList.forEach(dataNode => {
             root.children.add(dataNode)
         })
@@ -166,6 +192,8 @@ interface Data {
     label: string
     children: string[]
     originData?: any
+    x: number
+    y: number
 }
 
 interface FlowConfig {
@@ -173,8 +201,8 @@ interface FlowConfig {
     nodeColor: (data: any) => string
     arrowColor: (start: any, end: any) => string
     onTapNode?: (data: any) => any
-    gap?: number
-    radius: number
+    gap?: Vec2
+    width?: number
     offsetX?: number
     offsetY?: number
     fontSize?: number

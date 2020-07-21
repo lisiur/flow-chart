@@ -1,11 +1,11 @@
-System.register(["./data", "./Flow"], function (exports_1, context_1) {
+System.register(["./data3", "./Flow"], function (exports_1, context_1) {
     "use strict";
-    var data_1, Flow_1, canvas, flow;
+    var data3_1, Flow_1, canvas, flow;
     var __moduleName = context_1 && context_1.id;
     return {
         setters: [
-            function (data_1_1) {
-                data_1 = data_1_1;
+            function (data3_1_1) {
+                data3_1 = data3_1_1;
             },
             function (Flow_1_1) {
                 Flow_1 = Flow_1_1;
@@ -16,30 +16,27 @@ System.register(["./data", "./Flow"], function (exports_1, context_1) {
             if (!canvas) {
                 throw new Error('no canvas');
             }
-            flow = new Flow_1.default(canvas, data_1.default, {
+            flow = new Flow_1.default(canvas, data3_1.default, {
                 nodeBackground: function (data) {
-                    if (data.id === '1') {
-                        return 'red';
-                    }
-                    else {
-                        return 'green';
-                    }
+                    // if (data.id === '1') {
+                    return 'red';
+                    // } else {
+                    //     return 'green'
+                    // }
                 },
                 nodeColor: function (data) {
                     return 'white';
                 },
                 arrowColor: function (start, end) {
-                    if (start.id === '1') {
-                        return 'red';
-                    }
-                    else {
-                        return 'green';
-                    }
+                    // if (start.id === '1') {
+                    //     return 'red'
+                    // } else {
+                    return 'green';
+                    // }
                 },
                 onTapNode: function (data) {
                     alert(data.id);
                 },
-                radius: 30,
             });
             flow.render();
         }
