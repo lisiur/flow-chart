@@ -5,14 +5,15 @@ import Rect from './Rect'
 // import Layout from './Layout'
 import FlowNode from './FlowNode'
 import FlowArrow from './FlowArrow'
-// import * as math from 'mathjs'
-import math from 'mathjs'
+import * as math from 'mathjs'
+// import math from 'mathjs'
 export default class Flow {
     private flowArrows: FlowArrow[]
     private flowNodes: FlowNode<Data>[]
     private context: CanvasRenderingContext2D
     private interaction: Interaction
     private rect!: Rect
+    public maxRect: Rect
     private transformMatrix: math.Matrix
     private offset: Vec2
     constructor(private canvas: HTMLCanvasElement, dataList: Data[], public config: FlowConfig) {
@@ -43,11 +44,12 @@ export default class Flow {
         })
         const { width, height } = this.canvas
         this.rect = new Rect(0, 0, width, height)
+        this.maxRect = new Rect(0, 0, width, height)
 
         const { root: dataTree, list } = this.buildDataTree(dataList);
         const rootPosition = Array.from(dataTree.children)[0].position
         const realPosition = this.getPosition(rootPosition.x, rootPosition.y, true)
-        this.offset = new Vec2(width/ 2 - realPosition.x, 0)
+        this.offset = new Vec2(width / 2 - realPosition.x, 0)
 
         let maxLabelLength = 0
         dataList.forEach(dataItem => {
@@ -67,13 +69,15 @@ export default class Flow {
             // const center = layout.getPosition(dataItem.id) as Vec2
             const center = this.getPosition(dataItem.x, dataItem.y)
 
-            this.flowNodes.push(new FlowNode<Data>(canvas, {
+            const flowNode = new FlowNode<Data>(canvas, {
                 background: this.config.nodeBackground(dataItem.originData),
                 color: this.config.nodeColor(dataItem.originData),
                 rect: new Rect(center.x - labelWidth / 2, center.y - labelHeight / 2, labelWidth, labelHeight),
                 text: dataItem.label,
                 fontSize: this.config.fontSize,
-            }, dataItem))
+            }, dataItem)
+            this.flowNodes.push(flowNode)
+            this.maxRect = this.maxRect.combine(flowNode.config.rect)
             const parents = Array.from(node.parents)
             parents.forEach(parent => {
                 // const position = layout.getPosition(parent.id)
@@ -109,8 +113,18 @@ export default class Flow {
         const { x, y, w, h } = this.rect
         this.context.clearRect(x, y, w, h)
         this.context.restore()
-        this.flowArrows.forEach(flowArrow => flowArrow.render())
-        this.flowNodes.forEach(flowNode => flowNode.render())
+        const rTransformMatrix = math.inv(this.transformMatrix)
+        const start = math.multiply(rTransformMatrix, math.transpose(math.matrix([0, 0, 1])))
+        const end = math.multiply(rTransformMatrix, math.transpose(math.matrix([this.canvas.width, this.canvas.height, 1])))
+        const rect = new Rect(start.get([0]), start.get([1]), end.get([0]) - start.get([0]), end.get([1]) - start.get([1]))
+        this.flowArrows.forEach(flowArrow => {
+            flowArrow.render()
+        })
+        this.flowNodes.forEach(flowNode => {
+            if (flowNode.intersect(rect)) {
+                flowNode.render()
+            }
+        })
         // @ts-ignore for uni-app
         if (this.context.draw) this.context.draw()
     }

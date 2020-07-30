@@ -19,8 +19,12 @@ export default class FlowNode<T> {
         })
     }
 
+    intersect(rect: Rect) {
+        return this.config.rect.intersect(rect)
+    }
+
     contains(vec: Vec2) {
-        return vec.x >= this.config.rect.x && vec.x <= this.config.rect.endX && vec.y >= this.config.rect.y && vec.y <= this.config.rect.endY
+        return this.config.rect.contains(vec)
     }
 }
 
