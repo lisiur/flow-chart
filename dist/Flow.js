@@ -1,6 +1,6 @@
 System.register(["./Vec2", "./DataNode", "./Interaction", "./Rect", "./FlowNode", "./FlowArrow", "mathjs"], function (exports_1, context_1) {
     "use strict";
-    var Vec2_1, DataNode_1, Interaction_1, Rect_1, FlowNode_1, FlowArrow_1, mathjs_1, Flow;
+    var Vec2_1, DataNode_1, Interaction_1, Rect_1, FlowNode_1, FlowArrow_1, math, Flow;
     var __moduleName = context_1 && context_1.id;
     return {
         setters: [
@@ -22,11 +22,12 @@ System.register(["./Vec2", "./DataNode", "./Interaction", "./Rect", "./FlowNode"
             function (FlowArrow_1_1) {
                 FlowArrow_1 = FlowArrow_1_1;
             },
-            function (mathjs_1_1) {
-                mathjs_1 = mathjs_1_1;
+            function (math_1) {
+                math = math_1;
             }
         ],
         execute: function () {
+            // import math from 'mathjs'
             Flow = /** @class */ (function () {
                 function Flow(canvas, dataList, config) {
                     var _this = this;
@@ -38,7 +39,7 @@ System.register(["./Vec2", "./DataNode", "./Interaction", "./Rect", "./FlowNode"
                     this.context = context;
                     this.flowNodes = [];
                     this.flowArrows = [];
-                    this.transformMatrix = mathjs_1.default.matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
+                    this.transformMatrix = math.matrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
                     this.interaction = new Interaction_1.default(canvas, {
                         scale: this.scale.bind(this),
                         translate: this.translate.bind(this)
@@ -46,9 +47,9 @@ System.register(["./Vec2", "./DataNode", "./Interaction", "./Rect", "./FlowNode"
                     this.interaction.on('tap', function (event) {
                         _this.flowNodes.forEach(function (flowNode) {
                             if (event.name === 'tap') {
-                                var point = mathjs_1.default.transpose(mathjs_1.default.matrix([event.center.x, event.center.y, 1]));
-                                var rTransformMatrix = mathjs_1.default.inv(_this.transformMatrix);
-                                var originPoint = mathjs_1.default.multiply(rTransformMatrix, point);
+                                var point = math.transpose(math.matrix([event.center.x, event.center.y, 1]));
+                                var rTransformMatrix = math.inv(_this.transformMatrix);
+                                var originPoint = math.multiply(rTransformMatrix, point);
                                 if (flowNode.contains(new Vec2_1.default(originPoint.get([0]), originPoint.get([1])))) {
                                     if (config.onTapNode) {
                                         config.onTapNode(flowNode.data.originData);
@@ -59,6 +60,7 @@ System.register(["./Vec2", "./DataNode", "./Interaction", "./Rect", "./FlowNode"
                     });
                     var _a = this.canvas, width = _a.width, height = _a.height;
                     this.rect = new Rect_1.default(0, 0, width, height);
+                    this.maxRect = new Rect_1.default(0, 0, width, height);
                     var _b = this.buildDataTree(dataList), dataTree = _b.root, list = _b.list;
                     var rootPosition = Array.from(dataTree.children)[0].position;
                     var realPosition = this.getPosition(rootPosition.x, rootPosition.y, true);
@@ -78,13 +80,15 @@ System.register(["./Vec2", "./DataNode", "./Interaction", "./Rect", "./FlowNode"
                         var node = list.get(dataItem.id);
                         // const center = layout.getPosition(dataItem.id) as Vec2
                         var center = _this.getPosition(dataItem.x, dataItem.y);
-                        _this.flowNodes.push(new FlowNode_1.default(canvas, {
+                        var flowNode = new FlowNode_1.default(canvas, {
                             background: _this.config.nodeBackground(dataItem.originData),
                             color: _this.config.nodeColor(dataItem.originData),
                             rect: new Rect_1.default(center.x - labelWidth / 2, center.y - labelHeight / 2, labelWidth, labelHeight),
                             text: dataItem.label,
                             fontSize: _this.config.fontSize,
-                        }, dataItem));
+                        }, dataItem);
+                        _this.flowNodes.push(flowNode);
+                        _this.maxRect = _this.maxRect.combine(flowNode.config.rect);
                         var parents = Array.from(node.parents);
                         parents.forEach(function (parent) {
                             // const position = layout.getPosition(parent.id)
@@ -119,8 +123,18 @@ System.register(["./Vec2", "./DataNode", "./Interaction", "./Rect", "./FlowNode"
                     var _a = this.rect, x = _a.x, y = _a.y, w = _a.w, h = _a.h;
                     this.context.clearRect(x, y, w, h);
                     this.context.restore();
-                    this.flowArrows.forEach(function (flowArrow) { return flowArrow.render(); });
-                    this.flowNodes.forEach(function (flowNode) { return flowNode.render(); });
+                    var rTransformMatrix = math.inv(this.transformMatrix);
+                    var start = math.multiply(rTransformMatrix, math.transpose(math.matrix([0, 0, 1])));
+                    var end = math.multiply(rTransformMatrix, math.transpose(math.matrix([this.canvas.width, this.canvas.height, 1])));
+                    var rect = new Rect_1.default(start.get([0]), start.get([1]), end.get([0]) - start.get([0]), end.get([1]) - start.get([1]));
+                    this.flowArrows.forEach(function (flowArrow) {
+                        flowArrow.render();
+                    });
+                    this.flowNodes.forEach(function (flowNode) {
+                        if (flowNode.intersect(rect)) {
+                            flowNode.render();
+                        }
+                    });
                     // @ts-ignore for uni-app
                     if (this.context.draw)
                         this.context.draw();
@@ -131,26 +145,26 @@ System.register(["./Vec2", "./DataNode", "./Interaction", "./Rect", "./FlowNode"
                     this.render();
                 };
                 Flow.prototype.translate = function (vec) {
-                    var translateMatrix = mathjs_1.default.matrix([
+                    var translateMatrix = math.matrix([
                         [1, 0, vec.x],
                         [0, 1, vec.y],
                         [0, 0, 1]
                     ]);
-                    var transformMatrix = mathjs_1.default.multiply(translateMatrix, this.transformMatrix);
+                    var transformMatrix = math.multiply(translateMatrix, this.transformMatrix);
                     this.transform(transformMatrix);
                 };
                 Flow.prototype.scale = function (center, delta) {
-                    var translateMatrix = mathjs_1.default.matrix([
+                    var translateMatrix = math.matrix([
                         [1, 0, -center.x],
                         [0, 1, -center.y],
                         [0, 0, 1]
                     ]);
-                    var scaleMatrix = mathjs_1.default.matrix([
+                    var scaleMatrix = math.matrix([
                         [delta, 0, center.x],
                         [0, delta, center.y],
                         [0, 0, 1]
                     ]);
-                    var transformMatrix = mathjs_1.default.multiply(mathjs_1.default.multiply(scaleMatrix, translateMatrix), this.transformMatrix);
+                    var transformMatrix = math.multiply(math.multiply(scaleMatrix, translateMatrix), this.transformMatrix);
                     this.transform(transformMatrix);
                     this.render();
                 };

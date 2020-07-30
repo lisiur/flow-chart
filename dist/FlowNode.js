@@ -25,8 +25,11 @@ System.register(["./GraphNode"], function (exports_1, context_1) {
                         fontSize: fontSize,
                     });
                 };
+                FlowNode.prototype.intersect = function (rect) {
+                    return this.config.rect.intersect(rect);
+                };
                 FlowNode.prototype.contains = function (vec) {
-                    return vec.x >= this.config.rect.x && vec.x <= this.config.rect.endX && vec.y >= this.config.rect.y && vec.y <= this.config.rect.endY;
+                    return this.config.rect.contains(vec);
                 };
                 return FlowNode;
             }());
