@@ -1,14 +1,20 @@
 import Vec2 from "./Vec2"
 import GraphArrow from "./GraphArrow"
+import Rect from "./Rect"
 
 export default class FlowNode {
     private graphArrow: GraphArrow
+    private rect: Rect
     constructor(canvas: HTMLCanvasElement, public config: Config) {
         this.graphArrow = new GraphArrow(canvas)
+        let minX = Math.min(this.config.start.x, this.config.end.x)
+        let minY = Math.min(this.config.start.y, this.config.end.y)
+        let maxX = Math.max(this.config.start.x, this.config.end.x)
+        let maxY = Math.max(this.config.start.y, this.config.end.y)
+        this.rect = new Rect(minX, minY, maxX - minX, maxY - minY)
     }
 
-    render(config?: Config) {
-        this.config = config ?? this.config
+    render() {
         const { start, end, color, endBorder = 5, startRadius = 5, endAngle = Math.PI / 2, endHeight = 10, wrapLength = 20 } = this.config
         this.graphArrow.render({
             color,
@@ -20,6 +26,10 @@ export default class FlowNode {
             endHeight,
             wrapLength,
         })
+    }
+
+    intersect(rect: Rect) {
+        return this.rect.intersect(rect)
     }
 }
 

@@ -8,7 +8,7 @@ export default class FlowNode<T> {
         this.graphNode = new GraphNode(canvas)
     }
 
-    render() {
+    render(ext: { scale: number }) {
         const { text, rect, color, background, fontSize = 12 } = this.config
         this.graphNode.render({
             background,
@@ -16,6 +16,7 @@ export default class FlowNode<T> {
             color,
             text,
             fontSize,
+            scale: ext.scale,
         })
     }
 

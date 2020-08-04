@@ -17,7 +17,7 @@ export default class GraphNode {
     }
 
     render(config: Config) {
-        const { rect, text, background, fontSize, color, borderRadius = 6 } = config
+        const { scale, rect, text, background, fontSize, color, borderRadius = 6 } = config
         const topRect = new Rect(rect.startX + borderRadius, rect.startY, rect.width - borderRadius * 2, borderRadius)
         const middleRect = new Rect(rect.startX, rect.startY + borderRadius, rect.width, rect.height - borderRadius * 2)
         const bottomRect = new Rect(rect.startX + borderRadius, rect.endY - borderRadius, rect.width - borderRadius * 2, borderRadius)
@@ -65,14 +65,16 @@ export default class GraphNode {
             fillStyle: background
         })
 
-        this.text.render({
-            bound: rect.offset(new Vec2(0, 2)),
-            text,
-            textBaseOffset: 'center',
-        }, {
-            font: `${fontSize}px Microsoft YaHei`,
-            fillStyle: color
-        })
+        if (scale > 0.3) {
+            this.text.render({
+                bound: rect.offset(new Vec2(0, 2)),
+                text,
+                textBaseOffset: 'center',
+            }, {
+                font: `${fontSize}px Microsoft YaHei`,
+                fillStyle: color
+            })
+        }
     }
 }
 
@@ -83,4 +85,5 @@ export interface Config {
     color: string
     fontSize: number
     borderRadius?: number
+    scale: number
 }

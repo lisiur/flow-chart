@@ -117,16 +117,26 @@ export default class Flow {
         const start = math.multiply(rTransformMatrix, math.transpose(math.matrix([0, 0, 1])))
         const end = math.multiply(rTransformMatrix, math.transpose(math.matrix([this.canvas.width, this.canvas.height, 1])))
         const rect = new Rect(start.get([0]), start.get([1]), end.get([0]) - start.get([0]), end.get([1]) - start.get([1]))
+
+        const scaleX = this.transformMatrix.get([0, 0])
+
         this.flowArrows.forEach(flowArrow => {
-            flowArrow.render()
+            if (flowArrow.intersect(rect)) {
+                flowArrow.render()
+            }
         })
         this.flowNodes.forEach(flowNode => {
             if (flowNode.intersect(rect)) {
-                flowNode.render()
+                flowNode.render({scale: scaleX})
             }
         })
         // @ts-ignore for uni-app
         if (this.context.draw) this.context.draw()
+    }
+
+    autoRender() {
+        this.render()
+        window.requestAnimationFrame(this.autoRender.bind(this))
     }
 
     transform(matrix: math.Matrix) {
@@ -139,7 +149,6 @@ export default class Flow {
             this.transformMatrix.get([0, 2]),
             this.transformMatrix.get([1, 2]),
         )
-        this.render()
     }
 
     translate(vec: Vec2) {
@@ -165,7 +174,6 @@ export default class Flow {
         ])
         let transformMatrix = math.multiply(math.multiply(scaleMatrix, translateMatrix), this.transformMatrix)
         this.transform(transformMatrix)
-        this.render()
     }
 
     private buildDataTree(dataList: Data[]) {

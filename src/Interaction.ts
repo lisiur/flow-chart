@@ -33,7 +33,7 @@ export default class Interaction extends EventBus {
     private handleScroll(e: MouseEvent & { wheelDelta: number }) {
         // e.preventDefault()
         const { offsetX: x, offsetY: y } = e
-        let delta = 1 + (e.wheelDelta ? e.wheelDelta / 40 : (-e.detail)) * 0.1
+        let delta = 1 + (e.wheelDelta !== undefined ? e.wheelDelta / 40 : (-e.detail)) * 0.1
         const center = new Vec2(x, y)
         this.callbacks.scale(center, delta)
         this.dispatch({
